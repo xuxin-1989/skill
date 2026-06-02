@@ -48,6 +48,21 @@ Unified IMA OpenAPI skill. Currently supports: **notes**, **knowledge-base**.
 4. **File upload integrity:** Keep file content as-is during upload. No encoding conversion for binary files (PDF, images, Excel, etc.).
 5. **PowerShell 5.1 (all modules):** If running in PowerShell, detect version before first API call. PS 5.1 silently converts request Body to GBK — must use UTF-8 byte array mode. See [Detailed Rules](#powershell-51-environment-detection).
 
+## ⛔ 反例与黑名单（禁止操作速查）
+
+| 禁止操作 | 后果 | 正确做法 |
+|----------|------|----------|
+| 重命名/缩短/翻译/修改上传文件的原始文件名 | 文件名与后端记录不匹配 | `title` 必须等于 `file_name`（含扩展名） |
+| 对二进制文件（PDF/图片/Excel）做编码转换 | 文件损坏 | 保持原始字节流 |
+| 跳过 UTF-8 校验直接写入笔记 | 不可逆乱码 | 必须先校验 content/title 为合法 UTF-8 |
+| 在 PowerShell 5.1 中用默认方式发 API 请求 | Body 被静默转 GBK | 检测版本，用 UTF-8 byte array 模式 |
+| 询问用户"是否还要尝试"上传不支持的文件 | 浪费用户时间 | 直接拒绝并告知不支持 |
+| 视频文件 / B站URL / YouTube URL / file:// URL | 不支持 | 告知用户用 IMA 桌面客户端 |
+| 不读子模块 SKILL.md 就执行跨模块任务 | 流程错误 | 先读 knowledge-base/SKILL.md → 再读 notes/SKILL.md |
+| 对"帮我记一下"不确认意图直接创建笔记 | 可能不是用户想要的 | 先询问是创建新笔记还是追加到已有笔记 |
+
+---
+
 ## 模块决策表
 
 | 用户意图                                                                                   | 模块           | 读取                      |
