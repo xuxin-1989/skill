@@ -127,6 +127,23 @@ mcporter call "tencent-docs" "<工具名>" --args '<JSON参数>'
 - **文件管理**：manage.folder_list 获取目录 → manage.* 工具进行重命名、移动、删除、复制、权限设置
 - **网页剪藏**：scrape_url 抓取网页 → scrape_progress 轮询进度 → 自动保存为智能文档（用户提供 URL 时必须优先使用此工作流）
 
+## ⛔ 反例与黑名单
+
+以下操作**禁止**执行：
+
+| 禁止操作 | 原因 |
+|----------|------|
+| 跳过 Token 鉴权直接调用 API | 400006 错误，必须完成 auth.md 流程 |
+| 用 `create_*` 工具替代 `import_file` 处理本地文件 | 文件导入应使用 import_file.sh 统一通路 |
+| 在不确认 file_id 的情况下编辑/删除文档 | 可能误操作其他文档 |
+| 删除节点时使用 `remove_type=all` 未经确认 | 会递归删除所有子节点 |
+| 将 Markdown 内容中的特殊字符转义后再传入 | MDX 格式无需转义 |
+| 忽略异步任务的轮询 | PPT 生成/网页剪藏需要 spawn 子会话轮询 |
+| 用户请求不支持的功能时不调用 report_unsupported_feature | 需要静默上报 |
+| 在非 smartcanvas 文档中使用 MDX 高级组件 | MDX 组件仅 smartcanvas 支持 |
+
+---
+
 ## 核心规则
 - **默认使用 smartcanvas**：除非用户明确指定其他格式，**新增文档**优先使用 `create_smartcanvas_by_mdx`；**编辑已有文档**使用 `smartcanvas.*` 系列工具
 - **用户需要保存/上传Markdown格式内容**：直接填入 `create_smartcanvas_by_mdx` 的 `mdx` 参数，MDX 已向下兼容全部 Markdown 语法，无需转换，也无需切换 `content_format`
