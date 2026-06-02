@@ -121,33 +121,64 @@ description: "在任何创造性工作之前必须使用。在实施之前探索
 ## After Design
 
 ### Documentation
-- 将验证过的设计写入 `docs/designs/YYYY-MM-DD-<topic>-design.md`
-- 将设计文档提交到 git
+1. 确保 `docs/designs/` 目录存在（不存在则 `mkdir -p`）
+2. 写入 `docs/designs/YYYY-MM-DD-<topic>-design.md`
+3. `git add` + `git commit -m "docs: add design for <topic>"`
 
-### Spec Self-Check
-1. **占位符扫描**: 是否有 "TBD"、"TODO"、不完整的部分？修复它们
-2. **内部一致性**: 各部分之间是否有矛盾？
-3. **范围检查**: 是否足够聚焦？
-4. **歧义检查**: 是否有需求可以被两种方式解释？
+### Spec Self-Check（内联执行，不派子代理）
+逐项扫描并自动修复：
 
-### User Review Gate
-> "设计规格已写入 `<path>`。请审核，在开始实施之前是否需要任何更改？"
+| 检查项 | 扫描内容 | 发现问题时 |
+|--------|----------|------------|
+| 占位符 | `TBD`、`TODO`、`???`、留空的表格单元格 | 填入具体值 |
+| 一致性 | 架构描述 vs 组件列表是否匹配 | 以架构描述为准，修正组件列表 |
+| 范围 | 是否涉及 3+ 独立子系统 | 拆分为多个子设计文档 |
+| 歧义 | 同一需求是否可被两种方式解释 | 选择一种并明确标注决策 |
 
-等待用户回应。仅在用户批准后才继续。
+扫完输出：`✅ 自查通过，0 问题` 或 `⚠ 发现 N 个问题，已修复`
+
+### 🔴 User Review Gate
+> "设计规格已写入 `<path>`，自查通过。请审核，需要任何更改吗？"
+
+等待用户明确回复「可以」「没问题」「批准」等同义确认词。仅在批准后才过渡到 Step 9。
 
 ## Visual Companion
 
-基于浏览器的可视化工具，用于展示模型、图表和选项。
+基于浏览器的可视化工具，详见 `visual-companion.md`。用于展示模型、图表、选项对比。
 
-### When to Propose
-当预计讨论涉及视觉内容（模型、布局、图表）时，单独提出：
-> "我们可以通过浏览器展示模型、图表和对比效果。需要开启本地可视化伴侣吗？"
+### 启动（Windows）
+```bash
+cd ~/.workbuddy/skills/brainstorming
+bash scripts/start-server.sh --project-dir <当前项目路径> --foreground
+```
+输出 JSON 含 `url`、`screen_dir`、`state_dir`。告诉用户打开 URL。
 
-### Usage
-启动服务器后，在 `screen_dir` 中写入 HTML 内容片断，用户在浏览器中查看并点击交互。
+### 使用循环
+1. **写 HTML 片段**到 `screen_dir`（只用 Write 工具，语义化文件名如 `layout.html`，不复用文件名）
+2. **告诉用户**看浏览器 + 做选择
+3. **读 `state_dir/events`** 获取用户点击数据
+4. **迭代或推进**
 
-## WorkBuddy Adaptation Notes
+### 关闭
+```bash
+bash scripts/stop-server.sh $SESSION_DIR
+```
 
-- 设计文档目录: `docs/designs/` (WorkBuddy 项目内)
-- 可视化伴侣脚本位于 `scripts/` 目录
-- 此 Skill 来自 [obra/superpowers](https://github.com/obra/superpowers) 项目，已适配 WorkBuddy
+### 何时用
+- 浏览器：UI 布局/架构图/视觉对比/状态机
+- 终端：需求问题/概念选择/权衡列表/技术决策
+
+## 资源引用
+
+| 文件 | 用途 |
+|------|------|
+| `visual-companion.md` | 可视化伴侣完整使用指南（CSS 类参考、事件格式） |
+| `spec-document-reviewer-prompt.md` | 规格审查子代理 Prompt 模板 |
+| `scripts/start-server.sh` | 启动可视化伴侣服务器 |
+| `scripts/stop-server.sh` | 停止可视化伴侣服务器 |
+| `scripts/frame-template.html` | 浏览器端 UI 框架（CSS 类参考） |
+| `scripts/helper.js` | 浏览器端 WebSocket 客户端 |
+| `scripts/server.cjs` | 可视化伴侣 HTTP + WebSocket 服务器 |
+| `test-prompts.json` | 优化评估用测试 Prompt 集 |
+
+> 此 Skill 源自 [obra/superpowers](https://github.com/obra/superpowers) (MIT, 216k stars)，已适配 WorkBuddy。
